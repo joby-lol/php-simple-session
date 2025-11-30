@@ -1,0 +1,28 @@
+{
+  "name": "joby/simple-session",
+  "description": "An opinionated PHP session management library, designed to expose a simple API but provide smart performance optimizations and minimize session creation and locking.",
+  "type": "library",
+  "require": {
+    "php": ">=8.3"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^12.3"
+  },
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Joby\\Session\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Joby\\Session\\": "tests/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Joby Elliott",
+      "email": "code@byjoby.com"
+    }
+  ]
+}
