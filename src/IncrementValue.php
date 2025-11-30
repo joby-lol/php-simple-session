@@ -13,10 +13,13 @@ namespace Joby\Session;
  */
 readonly class IncrementValue implements SessionUpdate
 {
+    public int $increment_by;
 
     public function __construct(
-        public int $increment_by = 1
-    ) {}
+        int|float $increment_by = 1
+    ) {
+        $this->increment_by = (int)$increment_by;
+    }
 
     /**
      * @inheritDoc

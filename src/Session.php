@@ -8,6 +8,8 @@
 
 namespace Joby\Session;
 
+use RuntimeException;
+
 /**
  * Static facade for interacting with PHP's built-in session management. Can be used for simple getting and setting, but provides so much more than that. This interface also:
  * 
@@ -26,7 +28,7 @@ class Session
      */
     protected static array $was_read = [];
     /**
-     * @var array|null $data the session data, cached from $_SESSION on first read
+     * @var array<mixed>|null $data the session data, cached from $_SESSION on first read
      */
     protected static array|null $data = null;
     /**
@@ -155,8 +157,16 @@ class Session
         session_start();
         $new_values = [];
         $unset_keys = [];
+        $storage_key = static::storageKey();
+        if (!isset($_SESSION[$storage_key])) {
+            $_SESSION[$storage_key] = [];
+        }
+        if (!is_array($_SESSION[$storage_key])) {
+            // if the storage key is not an array, we can't proceed
+            throw new RuntimeException('Session storage key "' . $storage_key . '" is not an array.');
+        }
         foreach (array_keys(static::$updates) as $key) {
-            $value = $_SESSION[static::storageKey()][$key] ?? null;
+            $value = $_SESSION[$storage_key][$key] ?? null;
             $value = static::applyUpdates($key, $value);
             if ($value === null) {
                 $unset_keys[] = $key;
@@ -166,11 +176,13 @@ class Session
         }
         // apply new values after they are all built, so that if an exception occurs we don't leave the session in a half-updated state
         foreach ($new_values as $key => $value) {
-            $_SESSION[static::storageKey()][$key] = $value;
+            // @phpstan-ignore-next-line because we have already checked that this is an array
+            $_SESSION[$storage_key][$key] = $value;
         }
         // now unset any keys that need to be removed
         foreach ($unset_keys as $key) {
-            unset($_SESSION[static::storageKey()][$key]);
+            // @phpstan-ignore-next-line because we have already checked that this is an array
+            unset($_SESSION[$storage_key][$key]);
         }
         // write and close the session
         session_write_close();
@@ -221,7 +233,15 @@ class Session
         }
         // otherwise, load the session data
         session_start();
-        static::$data = $_SESSION[static::$storage_key] ?? [];
+        $storage_key = static::storageKey();
+        if (!isset($_SESSION[$storage_key])) {
+            $_SESSION[$storage_key] = [];
+        }
+        if (!is_array($_SESSION[$storage_key])) {
+            // if the storage key is not an array, we can't proceed
+            throw new RuntimeException('Session storage key "' . $storage_key . '" is not an array.');
+        }
+        static::$data = $_SESSION[$storage_key];
         session_abort();
     }
 }

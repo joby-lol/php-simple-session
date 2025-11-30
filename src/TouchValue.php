@@ -19,7 +19,7 @@ readonly class TouchValue implements SessionUpdate
     public function apply(mixed $current_value): int
     {
         if (!is_numeric($current_value)) return time();
-        return max($current_value, time());
+        return (int) max($current_value, time());
     }
 
     /**
